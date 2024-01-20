@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.socket.io/3.1.1/socket.io.min.js"></script>
+  <title>WhatsApp Web</title>
+</head>
+<!-- Modal (group)-->
+<div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel">Create New Group</h5>
+        <button type="button" id="cancelBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createGroupForm">
+          <div class="modal-content">
+            <br>
+            <input class="form-control" id="roomNameInput" type="text" name="roomName" placeholder="Enter room name..."
+              required autofocus>
+            <br>
+            <input class="form-control" id="searchInput" type="text" name="searchQuery" placeholder="Search users...">
+
+            <ul class="list-group list-group-flush" id="searchResults">
+              <!-- Search results will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+            <p>Selected User List:</p>
+            <ul class="list-group list-group-flush" id="selectedUsers">
+              <!-- Selected users will be dynamically added here -->
+            </ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeBtn" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" onclick="createGroup(event)">Create Group</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (PM)-->
+<div class="modal fade" id="sendPMModal" tabindex="-1" aria-labelledby="ModalLabel4" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel4">Select User</h5>
+        <button type="button" id="cancelBtn4" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="sendPMForm">
+          <div class="modal-content">
+            <br>
+            <input class="form-control" id="searchInput2" type="text" name="searchQuery2" placeholder="Search a user:">
+
+            <ul class="list-group list-group-flush" id="searchResults2">
+              <!-- Search results will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+            <p><i>Selected User</i></p>
+            <ul class="list-group list-group-flush" id="selectedUser">
+              <!-- Selected users will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeBtn2" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary disabled" id="sendMsgBtn" onclick="newPvtChat(event)">Send
+          Message</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (roomUsers)-->
+<div class="modal fade" id="userRoomModal" tabindex="-1" aria-labelledby="ModalLabel1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel1">Group Participants</h5>
+        <button type="button" id="cancelBtn1" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="presentUsersList">
+          <!-- Display the list of users already present in the room here -->
+          <ul class="list-group list-group-flush" id="existingUsers">
+            <!-- Search results will be dynamically added here -->
+          </ul>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="adminBtn" class="btn btn-success disabled" data-bs-target="#adminStatusModal"
+          data-bs-toggle="modal" data-bs-dismiss="modal">Add/Remove Admin</button>
+        <button type="button" id="addUsersBtn" class="btn btn-primary disabled" data-bs-target="#addUserModal"
+          data-bs-toggle="modal" data-bs-dismiss="modal">Add Users</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (addUser)-->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="ModalLabel2" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel2">Select Users:</h5>
+        <button type="button" id="cancelBtn2" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <form id="addUserForm">
+          <div class="modal-content">
+            <br>
+            <input class="form-control" id="searchInput1" type="text" name="searchQuery1" placeholder="Search users...">
+            <ul class="list-group list-group-flush" id="searchAddResults">
+              <!-- Search results will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+            <h5>Users to add to group: </h5>
+            <ul class="list-group list-group-flush" id="selectedAddUsers">
+              <!-- Selected users will be dynamically added here -->
+            </ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeBtn1" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" onclick="addUsers(event)">Add participants</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (adminStatus)-->
+<div class="modal fade" id="adminStatusModal" tabindex="-1" aria-labelledby="ModalLabel3" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel3">Change admin privileges</h5>
+        <button type="button" id="cancelBtn3" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-content">
+          <br>
+          <!-- <input class="form-control" id="searchInput2" type="text" name="searchQuery2" placeholder="Search users..."> -->
+          <ul class="list-group list-group-flush" id="adminStatusUl">
+            <!-- Search results will be dynamically added here -->
+          </ul>
+
+        </div>
+
+      </div>
+      <!-- <div class="modal-footer">
+        <button type="submit" class="btn btn-primary" onclick="">Add participants</button>
+      </div> -->
+    </div>
+  </div>
+</div>
+
+<body>
+  <div class="back-container">
+    <div class="container-fluid front-container">
+      <div class="back-top"></div>
+      <div class="back-main"></div>
+    </div>
+    <div class="container front-container1">
+      <div class="row chat-top">
+        <div class="col-sm-4 border-end border-secondary border-1">
+          <span class="float-end mt-3">
+
+            <svg id="sendPMBtn" width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-chat-left-fill mx-3"
+              fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+            </svg>
+            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-three-dots-vertical mr-2" fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+            </svg>
+          </span>
+        </div>
+        <div class="col-sm-8">
+          <span class="float-start ml-2 mt-3 " id="currentRoom"></span>
+          <div class="float-end dropdown dropleft m-2 border-0">
+            <!-- Button trigger modal -->
+            <button type="button" class="btn-sm btn-primary dropdown-toggle border-rounded" data-bs-toggle="dropdown"
+              aria-expanded="false"></button>
+
+            <div class="dropdown-menu" aria-labelledby="menuBtn">
+              <!-- Dropdown items -->
+              <button type="button" class="dropdown-item" href="#" id="createGroupBtn" data-bs-toggle="modal"
+                data-bs-target="#createGroupModal">Create Group</button>
+              <button class="dropdown-item" id="viewUsersBtn" data-bs-toggle="modal" data-bs-target="#userRoomModal"
+                type="button">View/Add Users</button>
+              <button class="dropdown-item" type="button" onclick="logout(event)">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row chat-body">
+        <div class="col-sm-4 contacts">
+          <div class="contact-table-scroll">
+            <table class="table table-hover">
+              <tbody id="room_list">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-sm-8 message-area">
+          <div class="message-table-scroll" id="main-chat">
+            <table class="table">
+              <tbody id="chat-messages" style="overflow-wrap: break-word;">
+                <!-- start -->
+                <!-- end -->
+              </tbody>
+
+            </table>
+          </div>
+          <div class="row message-box p-3">
+            <br>
+            <div class="col-sm-2 mt-2">
+              <label for="fileInput">
+                <svg id="ulBtn" width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-paperclip mx-2"
+                  fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                    d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z">
+                  </path>
+                </svg>
+              </label>
+              <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".pdf, image/*, video/*" style="display: none;">
+              </form>
+              <div class="text-center">
+                <div class="spinner-border spinner-border-sm" style="display: none;" id="loadingIcon"role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-8">
+              <form id="chat-form">
+                <input type="text" id="message" name="message" class="form-control" placeholder="Write message..."
+                  required>
+              </form>
+            </div>
+            <div class="col-sm-2 mt-1">
+              <svg id="chatBtn" width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-chevron-double-up"
+                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M7.646 2.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 3.707 2.354 9.354a.5.5 0 1 1-.708-.708l6-6z" />
+                <path fill-rule="evenodd"
+                  d="M7.646 6.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 7.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+  </div>
+  <!-- Option 1: Bootstrap Bundle with Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+    integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="scripts/chat.js"></script>
+
+</body>
+
+</html>
