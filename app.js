@@ -153,6 +153,9 @@ app.get('/styles.css', (req, res) => {
 app.get('/signup', (req, res) => {
   res.sendFile(__dirname + '/public/signup.html');
 });
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/signup.html');
+});
 
 app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/public/login.html');
@@ -205,8 +208,6 @@ app.get('/getUserRooms', auth.authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error retrieving user rooms' });
   }
 });
-
-
 
 //get all users in a room
 app.get('/getRoomUsers/:room_ID', async (req, res) => {
